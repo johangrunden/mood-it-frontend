@@ -1,15 +1,18 @@
+
+const BACKEND_URL = 'http://35.228.41.54:8000';
+
 let currentMood = null;
 let filteredTracks = [];
 
 // Redirect the user to Spotify login
 function login() {
-  window.location.href = 'http://127.0.0.1:8000/login';
+  window.location.href = `${BACKEND_URL}/login`;
 }
 
 document.addEventListener('DOMContentLoaded', checkLoginStatus);
 
 function checkLoginStatus() {
-  fetch('http://127.0.0.1:8000/me', {
+  fetch(`${BACKEND_URL}/me`, {
     credentials: 'include'
   })
     .then(res => {
@@ -28,10 +31,8 @@ function checkLoginStatus() {
     });
 }
 
-
-// Fetch and render all liked tracks (unfiltered)
 function showAllLiked() {
-  fetch('http://127.0.0.1:8000/all-liked-tracks', {
+  fetch(`${BACKEND_URL}/all-liked-tracks`, {
     credentials: 'include'
   })
     .then(res => res.json())
@@ -57,15 +58,13 @@ function showAllLiked() {
     });
 }
 
-// Called when a mood button is clicked
 function selectMood(mood) {
   currentMood = mood;
-  fetch(`http://127.0.0.1:8000/mood-tracks?mood=${mood}`, {
+  fetch(`${BACKEND_URL}/mood-tracks?mood=${mood}`, {
     credentials: 'include'
   })
     .then(res => res.json())
     .then(data => {
-      // Update the track list in the UI and store URIs
       updateTrackList(data);
     })
     .catch(err => {
@@ -73,7 +72,6 @@ function selectMood(mood) {
     });
 }
 
-// Render the list of tracks and save their URIs for playlist creation
 function updateTrackList(tracks) {
   const listEl = document.getElementById('track-list');
   listEl.innerHTML = '';
@@ -93,7 +91,6 @@ function updateTrackList(tracks) {
   });
 }
 
-// Called when the "Create Playlist" button is clicked
 function createPlaylist() {
   if (!currentMood || !filteredTracks.length) {
     alert('Please select a mood and wait for matching tracks.');
@@ -101,7 +98,7 @@ function createPlaylist() {
   }
 
   const uris = filteredTracks.map(t => t.uri);
-  fetch('http://127.0.0.1:8000/create-playlist', {
+  fetch(`${BACKEND_URL}/create-playlist`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ mood: currentMood, uris }),
