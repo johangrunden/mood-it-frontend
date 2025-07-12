@@ -1,7 +1,20 @@
-
 const BACKEND_URL = 'https://ordinary-considers-appearing-stanley.trycloudflare.com';
 let currentMood = null;
 let filteredTracks = [];
+
+// Check if token is in URL and save to localStorage
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromUrl = urlParams.get('token');
+if (tokenFromUrl) {
+  localStorage.setItem('access_token', tokenFromUrl);
+  // Clean up URL (remove ?token=...)
+  window.history.replaceState({}, document.title, "/mood-it-frontend/");
+}
+
+// Get token from localStorage
+function getToken() {
+  return localStorage.getItem('access_token');
+}
 
 // Redirect the user to Spotify login
 function login() {
@@ -11,8 +24,11 @@ function login() {
 document.addEventListener('DOMContentLoaded', checkLoginStatus);
 
 function checkLoginStatus() {
+  const token = getToken();
+  if (!token) return;
+
   fetch(`${BACKEND_URL}/me`, {
-    credentials: 'include'
+    headers: { 'Authorization': `Bearer ${token}` }
   })
     .then(res => {
       if (!res.ok) throw new Error('Not logged in');
@@ -31,8 +47,9 @@ function checkLoginStatus() {
 }
 
 function showAllLiked() {
+  const token = getToken();
   fetch(`${BACKEND_URL}/all-liked-tracks`, {
-    credentials: 'include'
+    headers: { 'Authorization': `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(data => {
@@ -59,8 +76,9 @@ function showAllLiked() {
 
 function selectMood(mood) {
   currentMood = mood;
+  const token = getToken();
   fetch(`${BACKEND_URL}/mood-tracks?mood=${mood}`, {
-    credentials: 'include'
+    headers: { 'Authorization': `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(data => {
@@ -96,20 +114,22 @@ function createPlaylist() {
     return;
   }
 
+  const token = getToken();
   const uris = filteredTracks.map(t => t.uri);
   fetch(`${BACKEND_URL}/create-playlist`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mood: currentMood, uris }),
-    credentials: 'include'
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ mood: currentMood, uris })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.playlist_url) {
-      window.open(data.playlist_url, '_blank');
-    } else {
-      alert('Error: ' + (data.error || 'Unknown error'));
-    }
-  });
+    .then(res => res.json())
+    .then(data => {
+      if (data.playlist_url) {
+        window.open(data.playlist_url, '_blank');
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+      }
+    });
 }
-
