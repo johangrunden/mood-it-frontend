@@ -22,7 +22,7 @@ export default function Login() {
       <div className="mt-16 flex flex-col items-center gap-4">
         <h1 className="text-3xl font-bold">Sign in to continue</h1>
         <p className="text-white/70">
-          Use your liked songs to build mood-based playlists.
+          Use your liked songs to build mood-based playlists. (This is a mock version)
         </p>
         <Button onClick={handleLogin}>Continue with Spotify</Button>
       </div>
